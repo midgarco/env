@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-// LoadEnvFile will load an ini formatted file into
+// Load will load an ini formatted file into
 // the os ENVIRONMENT
-func LoadEnvFile(name string) error {
+func Load(name string) error {
 	f, err := os.Open(name)
 	if err != nil {
 		return err
@@ -25,11 +25,16 @@ func LoadEnvFile(name string) error {
 			return err
 		}
 
+		// ignore comments
+		if strings.HasPrefix(ln, "#") {
+			continue
+		}
+
 		parts := strings.SplitN(ln, "=", 2)
 		if len(parts) != 2 {
 			continue
 		}
-		err = os.Setenv(parts[0], strings.TrimSpace(parts[1]))
+		err = os.Setenv(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
 		if err != nil {
 			return err
 		}
