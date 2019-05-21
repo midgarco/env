@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -61,7 +62,7 @@ type Option struct {
 	Value string
 }
 
-// Get returns the value from the envronment config
+// Get returns the value from the environment config
 func Get(key string) string {
 	return os.Getenv(key)
 }
@@ -87,4 +88,25 @@ func Override(opts ...Option) {
 func GetBool(key string) bool {
 	v := GetWithDefault(key, "false")
 	return (strings.ToLower(v) == "true" || v == "1")
+}
+
+// GetInt returns the integer value from the environment config
+func GetInt(key string) int {
+	str := Get(key)
+	v, err := strconv.Atoi(str)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// GetIntWithDefault returns the integer value from the environment config
+// or returns a default value if the setting is empty
+func GetIntWithDefault(key string, def int) int {
+	str := GetWithDefault(key, strconv.Itoa(def))
+	v, err := strconv.Atoi(str)
+	if err != nil {
+		return def
+	}
+	return v
 }
