@@ -8,9 +8,12 @@ import (
 	"strings"
 )
 
+var AppPrefix = ""
+
 // Load will load an ini formatted file into
 // the os ENVIRONMENT
-func Load(path string, opts ...Option) error {
+func Load(prefix, path string, opts ...Option) error {
+	AppPrefix = prefix
 	if !strings.HasSuffix(path, "/") {
 		path = path + "/"
 	}
@@ -48,7 +51,7 @@ func load(name string) error {
 		if len(parts) != 2 {
 			continue
 		}
-		err = os.Setenv(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
+		err = os.Setenv(strings.TrimSpace(AppPrefix+"_"+parts[0]), strings.TrimSpace(parts[1]))
 		if err != nil {
 			return err
 		}
@@ -64,12 +67,18 @@ type Option struct {
 
 // Get returns the value from the environment config
 func Get(key string) string {
+	if !strings.HasPrefix(key, AppPrefix) {
+		key = AppPrefix + "_" + key
+	}
 	return os.Getenv(key)
 }
 
 // GetWithDefault returns the value from the environment config
 // or returns a default value if the setting is empty
 func GetWithDefault(key, def string) string {
+	if !strings.HasPrefix(key, AppPrefix) {
+		key = AppPrefix + "_" + key
+	}
 	s := os.Getenv(key)
 	if s == "" {
 		s = def
@@ -80,18 +89,27 @@ func GetWithDefault(key, def string) string {
 // Override environment config with additional options
 func Override(opts ...Option) {
 	for _, opt := range opts {
-		os.Setenv(opt.Key, opt.Value)
+		if !strings.HasPrefix(opt.Key, AppPrefix) {
+			opt.Key = AppPrefix + "_" + opt.Key
+		}
+		os.Setenv(strings.TrimSpace(opt.Key), strings.TrimSpace(opt.Value))
 	}
 }
 
 // GetBool returns a boolean configuration setting
 func GetBool(key string) bool {
+	if !strings.HasPrefix(key, AppPrefix) {
+		key = AppPrefix + "_" + key
+	}
 	v := GetWithDefault(key, "false")
 	return (strings.ToLower(v) == "true" || v == "1")
 }
 
 // GetInt returns the integer value from the environment config
 func GetInt(key string) int {
+	if !strings.HasPrefix(key, AppPrefix) {
+		key = AppPrefix + "_" + key
+	}
 	str := Get(key)
 	v, err := strconv.Atoi(str)
 	if err != nil {
@@ -103,6 +121,9 @@ func GetInt(key string) int {
 // GetIntWithDefault returns the integer value from the environment config
 // or returns a default value if the setting is empty
 func GetIntWithDefault(key string, def int) int {
+	if !strings.HasPrefix(key, AppPrefix) {
+		key = AppPrefix + "_" + key
+	}
 	str := GetWithDefault(key, strconv.Itoa(def))
 	v, err := strconv.Atoi(str)
 	if err != nil {
