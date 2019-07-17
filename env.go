@@ -51,7 +51,11 @@ func load(name string) error {
 		if len(parts) != 2 {
 			continue
 		}
-		err = os.Setenv(strings.TrimSpace(AppPrefix+"_"+parts[0]), strings.TrimSpace(parts[1]))
+		key := strings.TrimSpace(AppPrefix + "_" + parts[0])
+		if val := os.Getenv(key); val != "" {
+			return nil
+		}
+		err = os.Setenv(key, strings.TrimSpace(parts[1]))
 		if err != nil {
 			return err
 		}
